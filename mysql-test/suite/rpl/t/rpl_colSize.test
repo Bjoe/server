@@ -217,6 +217,59 @@ SELECT BIN(a), BIN(b), BIN(c), BIN(d), BIN(e) FROM t1;
 --replace_result default DEFAULT
 SHOW CREATE TABLE t1;
 
+#
+# Test: Checking MYSQL_TYPE_DATE* fields
+#
+--echo Checking NON-LOSSY MYSQL_TYPE_DATE to MYSQL_TYPE_DATETIME
+connection master;
+DROP TABLE t1;
+sync_slave_with_master slave;
+
+connection master;
+CREATE TABLE t1 (a DATE);
+--replace_result default DEFAULT
+SHOW CREATE TABLE t1;
+
+sync_slave_with_master slave;
+ALTER TABLE t1 MODIFY a DATETIME(6);
+--replace_result default DEFAULT
+SHOW CREATE TABLE t1;
+
+connection master;
+INSERT INTO t1 VALUES (current_date()), (current_date() + 1);
+SELECT max(a) - min(a) as 'master: one' from t1;
+
+sync_slave_with_master slave;
+SELECT date(max(a)) - date(min(a)) as 'slave: 1' from t1;
+
+
+--echo Checking LOSSY MYSQL_TYPE_DATE to MYSQL_TYPE_DATETIME
+SET @local_saved_slave_type_conversions = @@slave_type_conversions;
+SET GLOBAL SLAVE_TYPE_CONVERSIONS = 'ALL_LOSSY';
+
+connection master;
+DROP TABLE t1;
+sync_slave_with_master slave;
+
+connection master;
+CREATE TABLE t1 (a DATETIME(6));
+--replace_result default DEFAULT
+SHOW CREATE TABLE t1;
+
+sync_slave_with_master slave;
+ALTER TABLE t1 MODIFY a DATE;
+--replace_result default DEFAULT
+SHOW CREATE TABLE t1;
+
+connection master;
+INSERT INTO t1 VALUES (current_timestamp(6)), (date_add(current_timestamp(6), INTERVAL 1 day));
+SELECT date(max(a)) - date(min(a)) as 'master: one day' from t1;
+
+sync_slave_with_master slave;
+SELECT max(a) - min(a) as 'slave: 1 day' from t1;
+
+SET GLOBAL SLAVE_TYPE_CONVERSIONS = @local_saved_slave_type_conversions;
+
 --echo *** Cleanup  ***
 connection master;
 DROP TABLE t1;

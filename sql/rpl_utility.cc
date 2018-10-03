@@ -626,7 +626,8 @@ can_convert_field_to(Field *field,
              (field->real_type() == MYSQL_TYPE_TIME2 &&
               source_type == MYSQL_TYPE_TIME) ||
              (field->real_type() == MYSQL_TYPE_DATETIME2 &&
-              source_type == MYSQL_TYPE_DATETIME))) ||
+              (source_type == MYSQL_TYPE_DATETIME ||
+               source_type == MYSQL_TYPE_NEWDATE)))) ||
             /*
               Conversion from MySQL56 TIMESTAMP(N), TIME(N), DATETIME(N)
               to the corresponding MariaDB or MySQL55 types is non-lossy.
@@ -765,14 +766,38 @@ can_convert_field_to(Field *field,
   case MYSQL_TYPE_TIME:
   case MYSQL_TYPE_DATETIME:
   case MYSQL_TYPE_YEAR:
-  case MYSQL_TYPE_NEWDATE:
   case MYSQL_TYPE_NULL:
   case MYSQL_TYPE_ENUM:
   case MYSQL_TYPE_SET:
   case MYSQL_TYPE_TIMESTAMP2:
-  case MYSQL_TYPE_DATETIME2:
   case MYSQL_TYPE_TIME2:
     DBUG_RETURN(false);
+  case MYSQL_TYPE_NEWDATE:
+    {
+      if (field->real_type() == MYSQL_TYPE_DATETIME2)
+      {
+        *order_var= -1;
+        DBUG_RETURN(is_conversion_ok(*order_var, rli));
+      }
+      else
+      {
+        DBUG_RETURN(false);
+      }
+    }
+    break;
+  case MYSQL_TYPE_DATETIME2:
+    {
+      if (field->real_type() == MYSQL_TYPE_NEWDATE)
+      {
+        *order_var= 1;
+        DBUG_RETURN(is_conversion_ok(*order_var, rli));
+      }
+      else
+      {
+        DBUG_RETURN(false);
+      }
+    }
+    break;
   }
   DBUG_RETURN(false);                                 // To keep GCC happy
 }
