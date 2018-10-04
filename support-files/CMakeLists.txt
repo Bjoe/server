@@ -69,8 +69,8 @@ IF(UNIX)
   IF(INSTALL_SUPPORTFILESDIR)
     INSTALL(FILES magic DESTINATION ${inst_location} COMPONENT SupportFiles)
     INSTALL(DIRECTORY policy DESTINATION ${inst_location} COMPONENT SupportFiles)
-    FIND_PROGRAM(CHECKMODULE checkmodule)
-    FIND_PROGRAM(SEMODULE_PACKAGE semodule_package)
+    #FIND_PROGRAM(CHECKMODULE checkmodule)
+    #FIND_PROGRAM(SEMODULE_PACKAGE semodule_package)
     MARK_AS_ADVANCED(CHECKMODULE SEMODULE_PACKAGE)
 
     # Build pp files in policy/selinux
