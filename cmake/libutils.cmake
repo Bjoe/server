@@ -150,7 +150,8 @@ MACRO(MERGE_STATIC_LIBS TARGET OUTPUT_NAME LIBS_TO_MERGE)
       # (can be a static or shared lib)
       IF(LIB_TYPE STREQUAL "STATIC_LIBRARY")
         SET(STATIC_LIBS ${STATIC_LIBS} ${LIB_LOCATION})
-        ADD_DEPENDENCIES(${TARGET} ${LIB})
+	list(APPEND LIB_TARGET ${LIB})
+	ADD_DEPENDENCIES(${TARGET} ${LIB})
         # Extract dependend OS libraries
         GET_DEPENDEND_OS_LIBS(${LIB} LIB_OSLIBS)
         LIST(APPEND OSLIBS ${LIB_OSLIBS})
@@ -171,7 +172,7 @@ MACRO(MERGE_STATIC_LIBS TARGET OUTPUT_NAME LIBS_TO_MERGE)
   ADD_CUSTOM_COMMAND( 
     OUTPUT  ${SOURCE_FILE}
     COMMAND ${CMAKE_COMMAND}  -E touch ${SOURCE_FILE}
-    DEPENDS ${STATIC_LIBS})
+    DEPENDS ${LIB_TARGET})
 
   IF(MSVC)
     # To merge libs, just pass them to lib.exe command line.
@@ -187,8 +188,8 @@ MACRO(MERGE_STATIC_LIBS TARGET OUTPUT_NAME LIBS_TO_MERGE)
       # Use OSX's libtool to merge archives (ihandles universal 
       # binaries properly)
       ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
-        COMMAND rm ${TARGET_LOCATION}
-        COMMAND libtool -static -o ${TARGET_LOCATION} 
+	COMMAND rm -f $<TARGET_FILE:${TARGET}>
+	COMMAND libtool -static -o $<TARGET_FILE:${TARGET}>
         ${STATIC_LIBS}
       )  
     ELSE()
@@ -202,7 +203,7 @@ MACRO(MERGE_STATIC_LIBS TARGET OUTPUT_NAME LIBS_TO_MERGE)
         @ONLY
       )
       ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
-        COMMAND rm ${TARGET_LOCATION}
+	COMMAND rm -f $<TARGET_FILE:${TARGET}>
         COMMAND ${CMAKE_COMMAND} -P 
         ${CMAKE_CURRENT_BINARY_DIR}/merge_archives_${TARGET}.cmake
       )

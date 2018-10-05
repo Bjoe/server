@@ -104,6 +104,9 @@ ELSE()
 ENDIF()
 PROJECT(${MYSQL_PROJECT_NAME})
 
+hunter_add_package(OpenSSL)
+hunter_add_package(ncurses)
+
 SET(CPACK_PACKAGE_NAME "MariaDB")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MariaDB: a very fast and robust SQL database server")
 SET(CPACK_PACKAGE_URL "http://mariadb.org")
@@ -345,10 +348,6 @@ IF(_FILE_OFFSET_BITS)
   ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=${_FILE_OFFSET_BITS})
 ENDIF()
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include)
-
-hunter_add_package(ZLIB)
-hunter_add_package(OpenSSL)
-hunter_add_package(ncurses)
 
 # Add bundled or system zlib.
 MYSQL_CHECK_ZLIB_WITH_COMPRESS()
