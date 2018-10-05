@@ -104,6 +104,7 @@ ELSE()
 ENDIF()
 PROJECT(${MYSQL_PROJECT_NAME})
 
+hunter_add_package(ZLIB)
 hunter_add_package(OpenSSL)
 hunter_add_package(ncurses)
 
